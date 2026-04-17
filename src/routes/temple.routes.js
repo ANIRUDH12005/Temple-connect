@@ -1,9 +1,19 @@
 import express from "express";
-import { createTemple } from "../controllers/temple.controller.js";
+import {
+  createTemple,
+  getAllTemples,
+  getTempleById,
+} from "../controllers/temple.controller.js";
 
 const router = express.Router();
 
-// POST /api/temples
+// CREATE
 router.post("/", createTemple);
+
+// GET ALL
+router.get("/", getAllTemples);
+
+// GET SINGLE
+router.get("/:id", getTempleById);
 
 export default router;
