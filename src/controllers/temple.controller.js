@@ -22,13 +22,34 @@ export const createTemple = async (req, res) => {
 // GET ALL
 export const getAllTemples = async (req, res) => {
   try {
-    const temples = await Temple.find();
+    const { state, city, deity, name } = req.query;
+
+    let filter = {};
+
+    if (state) {
+      filter.state = state;
+    }
+
+    if (city) {
+      filter.city = city;
+    }
+
+    if (deity) {
+      filter.deity = deity;
+    }
+
+    if (name) {
+      filter.name = { $regex: name, $options: "i" }; // search by name
+    }
+
+    const temples = await Temple.find(filter);
 
     return res.status(200).json({
       success: true,
       count: temples.length,
       data: temples,
     });
+
   } catch (error) {
     console.error(error);
 
