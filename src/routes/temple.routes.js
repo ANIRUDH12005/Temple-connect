@@ -1,4 +1,5 @@
 import express from "express";
+import { protect } from "../middleware/auth.middleware.js";
 import {
   createTemple,
   getAllTemples,
@@ -25,3 +26,12 @@ router.put("/:id", updateTemple);
 router.delete("/:id", deleteTemple);
 
 export default router;
+
+// CREATE (Protected)
+router.post("/", protect, createTemple);
+
+// UPDATE (Protected)
+router.put("/:id", protect, updateTemple);
+
+// DELETE (Protected)
+router.delete("/:id", protect, deleteTemple);

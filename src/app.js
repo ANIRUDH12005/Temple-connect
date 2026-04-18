@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import templeRoutes from "./routes/temple.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -13,5 +14,6 @@ app.get("/", (req, res) => {
 
 // ROUTES
 app.use("/api/temples", templeRoutes);
+app.use("/api/auth", authRoutes);
 
 export default app;
