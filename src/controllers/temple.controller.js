@@ -22,30 +22,29 @@ export const createTemple = async (req, res) => {
 // GET ALL
 export const getAllTemples = async (req, res) => {
   try {
-    const { state, city, deity, name } = req.query;
+    const { state, city, deity, name, page = 1, limit = 10 } = req.query;
 
     let filter = {};
 
-    if (state) {
-      filter.state = state;
-    }
+    if (state) filter.state = state;
+    if (city) filter.city = city;
+    if (deity) filter.deity = deity;
+    if (name) filter.name = { $regex: name, $options: "i" };
 
-    if (city) {
-      filter.city = city;
-    }
+    const skip = (page - 1) * limit;
 
-    if (deity) {
-      filter.deity = deity;
-    }
+    const total = await Temple.countDocuments(filter);
 
-    if (name) {
-      filter.name = { $regex: name, $options: "i" }; // search by name
-    }
-
-    const temples = await Temple.find(filter);
+    const temples = await Temple.find(filter)
+      .skip(skip)
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
       count: temples.length,
       data: temples,
     });
