@@ -1,9 +1,8 @@
 import Admin from "../models/admin.model.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 // REGISTER ADMIN
-export const registerAdmin = async (req, res) => {
+export const registerAdmin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -15,28 +14,30 @@ export const registerAdmin = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const admin = await Admin.create({
       email,
-      password: hashedPassword,
+      password, // Hashed by pre-save hook
+    });
+
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
     });
 
     return res.status(201).json({
       success: true,
-      data: admin,
+      token,
+      data: {
+        id: admin._id,
+        email: admin.email,
+      },
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
+    next(error);
   }
 };
 
 // LOGIN ADMIN
-export const loginAdmin = async (req, res) => {
+export const loginAdmin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -48,7 +49,7 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
+    const isMatch = await admin.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -56,21 +57,19 @@ export const loginAdmin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      { id: admin._id },
-      "secretkey",
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     return res.status(200).json({
       success: true,
       token,
+      data: {
+        id: admin._id,
+        email: admin.email,
+      },
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
+    next(error);
   }
-};
+};
